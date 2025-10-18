@@ -58,15 +58,15 @@ def detect_objects():
                 conf = box.conf[0].item()
                 cls = int(box.cls[0].item())
                 name = model.names[cls]
-
-                objects.append({
-                    'name': name,
-                    'confidence': conf,
-                    'xmin': int(x1),
-                    'ymin': int(y1),
-                    'xmax': int(x2),
-                    'ymax': int(y2)
-                })
+                if name == "Bottle":
+                    objects.append({
+                        'name': name,
+                        'confidence': conf,
+                        'xmin': int(x1),
+                        'ymin': int(y1),
+                        'xmax': int(x2),
+                        'ymax': int(y2)
+                    })
 
         return objects
 
