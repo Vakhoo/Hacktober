@@ -1,5 +1,6 @@
 import base64
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from ultralytics import YOLO
 import cv2
 import numpy as np
@@ -12,6 +13,14 @@ model = YOLO("yolov8n.pt")
 
 # Create the Flask application instance
 app = Flask(__name__)
+
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",  # Allow all origins (for hackathon/testing)
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # In-memory storage (this is fine, but unused by the POST route)
 greetings = {
@@ -71,7 +80,4 @@ def detect_objects():
 # Run the app (for development)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
-
-    import pprint
-    import sys
 
