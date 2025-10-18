@@ -9,18 +9,10 @@ import sys
 
 # --- 1. Load the model ONCE when the app starts ---
 # This is much more efficient.
-model = YOLO("yolov8m-oiv7.pt")
+model = YOLO("yolov8n.pt")
 
 # Create the Flask application instance
 app = Flask(__name__)
-
-CORS(app, resources={
-    r"/*": {
-        "origins": "*",  # Allow all origins (for hackathon/testing)
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
 
 # In-memory storage (this is fine, but unused by the POST route)
 greetings = {
@@ -58,7 +50,7 @@ def detect_objects():
                 conf = box.conf[0].item()
                 cls = int(box.cls[0].item())
                 name = model.names[cls]
-                if name == "Bottle":
+                if name == "bottle":
                     objects.append({
                         'name': name,
                         'confidence': conf,
