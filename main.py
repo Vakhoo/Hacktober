@@ -9,7 +9,7 @@ import sys
 
 # --- 1. Load the model ONCE when the app starts ---
 # This is much more efficient.
-model = YOLO("yolov8n.pt")
+model = YOLO("yolov8m-oiv7.pt")
 
 # Create the Flask application instance
 app = Flask(__name__)
