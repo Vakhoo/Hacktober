@@ -48,7 +48,7 @@ def detect_objects():
                 conf = box.conf[0].item()
                 cls = int(box.cls[0].item())
                 name = model.names[cls]
-                if name == "chair" or name == "knife":
+                if name == "chair":
                     objects.append({
                         'name': name,
                         'confidence': conf,
