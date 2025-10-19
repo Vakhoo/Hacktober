@@ -65,7 +65,7 @@ def detect_objects():
 
         return jsonify({
             "objects": objects,
-            "description": 'Caution ' + ', '.join(desc) + ' ahead',
+            "description": 'Caution ' + ', '.join(desc) + ' ahead' if len(desc) else None,
         })
 
     except base64.binascii.Error as e:
