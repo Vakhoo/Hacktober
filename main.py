@@ -14,21 +14,20 @@ genai.configure(api_key='AIzaSyB-lr7H6EWZh2uCgaEkC1UyVtQrbcDx04s')
 # Use the correct model name for free tier
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-
 @app.route('/detect', methods=['POST'])
 def detect_objects():
     try:
         data = request.json
         image_base64 = data['frame']
-
+        
         # Remove data URL prefix if present
         if ',' in image_base64:
             image_base64 = image_base64.split(',')[1]
-
+        
         # Decode base64 to image
         image_data = base64.b64decode(image_base64)
         image = Image.open(io.BytesIO(image_data))
-
+        
         # Create prompt for detailed detection
         prompt = """You are an AI assistant for blind people. Analyze this image and provide a brief, essential description.
 
@@ -55,19 +54,18 @@ def detect_objects():
         "Traffic light red, crosswalk ahead"
         "Playing card: King of Hearts"
         """
-
+        
         # Generate response
         response = model.generate_content([prompt, image])
-
+        
         return jsonify({
             'description': response.text,
             'objects': []
         })
-
+        
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': str(e), 'objects': []}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
