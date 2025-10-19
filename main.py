@@ -57,7 +57,11 @@ def detect_objects():
                         'xmax': int(x2),
                         'ymax': int(y2)
                     })
-                    desc.append('Detected ' + name)
+
+                    description_string ='Detected ' + name
+
+                    if description_string not in desc:
+                        desc.append(description_string)
 
         return jsonify({
             "objects": objects,
