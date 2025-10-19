@@ -48,7 +48,7 @@ def detect_objects():
                 conf = box.conf[0].item()
                 cls = int(box.cls[0].item())
                 name = model.names[cls]
-                if name == "chair" or name == 'bus':
+                if name == "chair":
                     objects.append({
                         'name': name,
                         'confidence': conf,
@@ -59,9 +59,6 @@ def detect_objects():
                     })
 
                     description_string =  name
-
-                    if description_string == 'bus':
-                        description_string = 'table'
 
                     if description_string not in desc:
                         desc.append(description_string)
