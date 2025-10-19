@@ -20,6 +20,10 @@ def detect_objects():
     try:
         data = request.json
         image_base64 = data['frame']
+        return jsonify({
+            'description': image_base64,
+            'objects': []
+        })
 
         # Remove data URL prefix if present
         if ',' in image_base64:
