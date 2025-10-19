@@ -37,7 +37,7 @@ def detect_objects():
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
         # Run detection
-        results = model(img)
+        results = model(img, conf=0.65)
 
         objects = []
         desc = []
