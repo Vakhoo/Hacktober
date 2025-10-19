@@ -1,71 +1,77 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import google.generativeai as genai
 import base64
-from PIL import Image
-import io
+from flask import Flask, jsonify, request
+from ultralytics import YOLO
+import cv2
+import numpy as np
 
+# --- 1. Load the model ONCE when the app starts ---
+# This is much more efficient.
+model = YOLO("yolov8n.pt")
+
+# Create the Flask application instance
 app = Flask(__name__)
-CORS(app)
 
-# Configure Gemini
-genai.configure(api_key='AIzaSyB-lr7H6EWZh2uCgaEkC1UyVtQrbcDx04s')
+# In-memory storage (this is fine, but unused by the POST route)
+greetings = {
+    1: "Hello, World!",
+    2: "¡Hola, Mundo!"
+}
 
-# Use the correct model name for free tier
-model = genai.GenerativeModel('gemini-2.5-flash')
+# GET endpoint: retrieves all greetings
+@app.route('/greetings', methods=['GET'])
+def get_all_greetings():
+    return jsonify(list(greetings.values()))
 
+
+# --- 2. Renamed route to be more descriptive ---
 @app.route('/detect', methods=['POST'])
 def detect_objects():
+    frame_data = request.json.get('frame')
+
+    if not frame_data:
+        return jsonify({"error": "No 'frame' key found in JSON payload"}), 400
+
     try:
-        data = request.json
-        image_base64 = data['frame']
-        
-        # Remove data URL prefix if present
-        if ',' in image_base64:
-            image_base64 = image_base64.split(',')[1]
-        
-        # Decode base64 to image
-        image_data = base64.b64decode(image_base64)
-        image = Image.open(io.BytesIO(image_data))
-        
-        # Create prompt for detailed detection
-        prompt = """You are an AI assistant for blind people. Analyze this image and provide a brief, essential description.
+        img_data = base64.b64decode(request.json.get('frame'))
+        nparr = np.frombuffer(img_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        PRIORITY WARNINGS (if present):
-        - Danger: stairs, traffic, obstacles, hazards
-        - Warning signs or alerts
+        # Run detection
+        results = model(img)
 
-        OBJECTS (be specific):
-        - Brands: Include key details (e.g., "Coca-Cola Zero Sugar" not just "Coca-Cola")
-        - Medications/Drugs: Full name and dosage (e.g., "Ibuprofen 200mg tablets")
-        - Playing cards: Exact card (e.g., "Ace of Spades")
-        - Food/Drinks: Include important details (sugar-free, diet, caffeine-free, etc.)
+        objects = []
+        desc = []
+        for result in results:
+            boxes = result.boxes
+            for box in boxes:
+                x1, y1, x2, y2 = box.xyxy[0].tolist()
+                conf = box.conf[0].item()
+                cls = int(box.cls[0].item())
+                name = model.names[cls]
+                if name == "chair":
+                    objects.append({
+                        'name': name,
+                        'confidence': conf,
+                        'xmin': int(x1),
+                        'ymin': int(y1),
+                        'xmax': int(x2),
+                        'ymax': int(y2)
+                    })
+                    desc.append('Detected ' + name)
 
-        FORMAT: 
-        - Keep response under 15 words
-        - Most important information first
-        - Be precise and clear
-        - Only mention what's clearly visible
-
-        Example good responses:
-        "Danger: stairs ahead"
-        "Coca-Cola Zero Sugar can, smartphone on table"
-        "Aspirin 500mg bottle, glass of water"
-        "Traffic light red, crosswalk ahead"
-        "Playing card: King of Hearts"
-        """
-        
-        # Generate response
-        response = model.generate_content([prompt, image])
-        
         return jsonify({
-            'description': response.text,
-            'objects': []
+            "objects": objects,
+            "description": ','.join(desc),
         })
-        
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({'error': str(e), 'objects': []}), 500
 
+    except base64.binascii.Error as e:
+        # This will catch any remaining padding or bad-character errors
+        return jsonify({"error": f"Base64 decoding error: {e}. Check client data."}), 400
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+
+# Run the app (for development)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
+
