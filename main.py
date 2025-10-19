@@ -58,14 +58,14 @@ def detect_objects():
                         'ymax': int(y2)
                     })
 
-                    description_string ='Detected ' + name
+                    description_string =  name
 
                     if description_string not in desc:
                         desc.append(description_string)
 
         return jsonify({
             "objects": objects,
-            "description": ','.join(desc),
+            "description": 'Caution' + ', '.join(desc) + 'ahead',
         })
 
     except base64.binascii.Error as e:
