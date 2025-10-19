@@ -5,7 +5,7 @@ import base64
 from PIL import Image
 import io
 
-app = Flask(_name_)
+app = Flask(__name__)
 CORS(app)
 
 # Configure Gemini
@@ -69,5 +69,5 @@ def detect_objects():
         return jsonify({'error': str(e), 'objects': []}), 500
 
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
